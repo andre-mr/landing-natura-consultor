@@ -330,9 +330,23 @@
 
       // Inicialização: lê parâmetros da URL e injeta valores
       (function initFromQuery() {
-        const params = new URL(window.location.href).searchParams;
-        const couponParam = params.get("cupom");
-        const linkParam = params.get("link");
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        let couponParam = params.get("cupom");
+        const linkParamMatch = url.search.match(/[?&]link=([^#]*)/);
+        let rawLinkParam = linkParamMatch ? linkParamMatch[1] : null;
+
+        if (rawLinkParam) {
+          const cupomFragment = rawLinkParam.match(/&cupom=[^&]*/);
+          if (cupomFragment) {
+            if (!couponParam) {
+              couponParam = decodeURIComponent(cupomFragment[0].split("=")[1]);
+            }
+            rawLinkParam = rawLinkParam.replace(cupomFragment[0], "");
+          }
+        }
+
+        const linkParam = rawLinkParam ? decodeURIComponent(rawLinkParam) : params.get("link");
 
         const couponCodeEl = document.getElementById("coupon-code");
         const buyLinkEl = document.getElementById("buy-link");
